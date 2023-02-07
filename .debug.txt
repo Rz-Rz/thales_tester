@@ -1,0 +1,2 @@
+timeout: invalid time interval ‘../last_version/philo_bonus/philo_bonus’
+Try 'timeout --help' for more information.

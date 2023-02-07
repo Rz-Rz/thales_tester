@@ -38,7 +38,6 @@ test_philosopher_death () {
 	echo -e "${yellow}[+] Testing $program_name with ${params[@]}${reset}"
 	(timeout 10 "$program_path/$program_name" "${params[@]}" > "$log_file")
 
-	check_cpu_usage "$pid"
 	check_death_occurred  "$test_number" "$log_file"
 	check_simulation_ends "$test_number" "$log_file"
 	death_timing "$log_file" "${params[1]}" "$test_number"
@@ -184,28 +183,37 @@ check_philosophers_eat () {
   echo "${green}[+] Test #${test_num} Succeeded with params: ${parameters[@]} !${reset}"
 }
 
-# check_cpu_usage() {
-# 	local program_name="$1"
-# 	local program_path="$2"
-# 	local params=("${@:3:4}")
-# 	local test_number="$7"
-# 	local pid=0
+check_philosophers_nodeath ()
+{
+	echo -e "\n"
+	local program_name="$1"
+	local program_path="$2"
+	local program_params=("${@:3:5}")
+	local test_number="$7"
+	local log_file="./log_$program_name"
+	echo -e "${yellow}[+] Test #${test_number} Testing $program_name with ${program_params[@]}${reset}"
+	(timeout 50 "$program_path/$program_name" "${program_params[@]}" > /dev/null)&
+	i=1
+    error=0
+    while [ $i -lt 40 ];do
+        printf "\r[%d...]" $i
+        pgrep $1 > /dev/null
+        if [ "$?" -ne 0 ];then
+            echo "${red}[+] Test #${test_number} Failed with ${program_params[@]}, the philosopher should stay alive for at least 40 seconds${reset}"
+            error=1
+            break
+        fi
+		echo "${yellow} ${i}sec - still alive ${reset}"
+        sleep 1
+        i=$(( $i + 1 ))
+    done
+    sleep 1
+    if [ $error -eq 0 ];then
+        pkill $1
+        echo "${green}[+] Test #${test_number} Succeeded with ${program_params}${reset}"
+    fi
+}
 
-# 	timeout 90 "$program_path/$program_name" "${params[@]}" &>/dev/null & pid=$!
-	
-# 	echo "pid = ${pid}"
-# 	wait $pid
-
-# 	sleep 5
-# 	cpu_usage=$(ps -p $pid -o %cpu | awk 'NR==2')
-# 	echo "cpu_usage = $cpu_usage"
-# 	# if (( $(echo "$cpu_usage > 30" | bc -l) )); then
-# 	# 	echo "Error: CPU usage is too high ($cpu_usage%)"
-# 	# 	exit 1
-# 	# else
-# 	# 	echo "CPU usage is within acceptable limits ($cpu_usage%)"
-# 	# fi
-# }
 
 check_cpu_usage() {
     local program_name="$1"
@@ -221,7 +229,7 @@ check_cpu_usage() {
 	local truncated_result=0
 	local pgid=0
 
-    "$program_path/$program_name" "${params[@]}" &>.debug.txt & pid=$!
+    timeout "$program_path/$program_name" "${params[@]}" &>.debug.txt & pid=$!
     
 	pgid=$(ps -o pgid= $pid | grep -o '[0-9]*')
 	sleep 1
@@ -274,10 +282,45 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	# test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
 	# test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
-	
-
 	# check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
-	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
+	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
+
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
     rm -rf "./log_$target"
 fi
 
+if [ "$2" -eq 2 -o "$2" -eq 0 ];then
+
+    echo "\n[============[Testing philo_bonus]==============]\n"
+
+    target="philo_bonus"
+    make -C "$1/" > /dev/null
+
+    if [ "$?" -ne 0 ];then
+        echo "\n[+] There's a problem while compiling $target, please recheck your inputs"
+        exit
+    fi
+	
+	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
+	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
+	test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
+	test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
+	test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
+	test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
+	test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
+	test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
+	test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
+
+	test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
+	test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
+	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
+	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
+	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
+
+	# check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
+	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
+
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+
+    rm -rf "./log_$target"
+fi
