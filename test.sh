@@ -1,3 +1,4 @@
+trap 'exit 130' INT # allows exit with C-c
 red=`tput setaf 1`
 green=`tput setaf 2`
 yellow=`tput setaf 3`
