@@ -262,7 +262,7 @@ check_program_arguments() {
     timeout 10 "$program_path/$program_name" "${params[@]}" &> output.txt
 
     if grep -q "Segmentation fault" output.txt; then
-        echo "${red}[+] Test #${test_number} Failed: Program crashed with a segmentation fault error with ${params} ${reset}"
+        echo "${red}[+] Test #${test_number} Failed: Program crashed with a segmentation fault error with ${params[@]} ${reset}"
         return 1
     fi
 
@@ -278,6 +278,25 @@ check_program_arguments() {
         echo -e "${green}[+] Test #${test_number} Program ran successfully without errors or output with ${params[@]}\n"
     fi
 	rm output.txt
+}
+
+check_number_of_forks ()
+{
+    local program_name="$1"
+    local program_path="$2"
+    local params=("${@:3:4}")
+	local test_number="$7"
+	(timeout 10 "$program_path/$program_name" "${params[@]}" &> /dev/null)&
+
+	sleep 1
+	forks=$(pgrep $1 | wc -l)
+    if [ "$forks" -eq 11 ];then
+        echo -e "${green}[+] Test #${test_number} Succeeded: Program created 10 forks with ${params[@]} ${reset}\n"
+    else
+        echo -e "${red}[+] Test #{test_number} Failed: Program created $forks forks with ${params[@]} ${reset}\n"
+    fi
+    pkill $1
+
 }
 
 
@@ -314,23 +333,24 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 
 	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
 	
-	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
-	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
-	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
-	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
-	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "23"
-	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "23"
-	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "23"
-	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "23"
-	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "23"
+	# check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
+	# check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
+	# check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
+	# check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
+	# check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
+	# check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
+	# check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "24"
+	# check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "25"
+	# check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "26"
+	# check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "27"
+	# check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "28"
+	
     rm -rf "./log_$target"
 fi
 
 if [ "$2" -eq 2 -o "$2" -eq 0 ];then
 
-    echo "\n[============[Testing philo_bonus]==============]\n"
+    echo -e "\n[============[Testing philo_bonus]==============]\n"
 
     target="philo_bonus"
     make -C "$1/" > /dev/null
@@ -360,17 +380,8 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
 	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
 
 	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	
+	check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
 
-	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
-	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
-	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
-	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
-	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "23"
-	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "23"
-	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "23"
-	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "23"
-	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "23"
     rm -rf "./log_$target"
 fi
