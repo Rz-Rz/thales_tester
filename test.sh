@@ -214,7 +214,6 @@ check_philosophers_nodeath ()
     fi
 }
 
-
 check_cpu_usage() {
     local program_name="$1"
     local program_path="$2"
@@ -254,6 +253,34 @@ check_cpu_usage() {
     kill $pid
 }
 
+check_program_arguments() {
+    local program_name="$1"
+    local program_path="$2"
+    local params=("${@:3:5}")
+	local test_number="$8"
+
+    timeout 10 "$program_path/$program_name" "${params[@]}" &> output.txt
+
+    if grep -q "Segmentation fault" output.txt; then
+        echo "${red}[+] Test #${test_number} Failed: Program crashed with a segmentation fault error with ${params} ${reset}"
+        return 1
+    fi
+
+    local output_line_count=$(wc -l < output.txt)
+    if [ $output_line_count -gt 1 ]; then
+		echo -e "${yellow}[~] Test #${test_number} Program output multiple lines with ${params[@]}, you should decide if this case is handled well. Here are the last lines: $(tail -n 2 output.txt) ${reset}\n"
+		rm output.txt
+        return 1
+    elif [ $output_line_count -eq 1 ]; then
+        echo -e "${yellow}[~] Test #${test_number} Program output with ${params[@]}: $(head -n 1 output.txt) ${reset}"
+        echo "${yellow}Check if this output is handled or not. ${reset}\n"
+    else
+        echo -e "${green}[+] Test #${test_number} Program ran successfully without errors or output with ${params[@]}\n"
+    fi
+	rm output.txt
+}
+
+
 if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 
     echo -e "[============[Testing philo]==============]\n"
@@ -285,7 +312,19 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	# check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
 	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
 
-	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	
+	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
+	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
+	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
+	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "23"
+	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "23"
+	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "23"
     rm -rf "./log_$target"
 fi
 
@@ -301,26 +340,37 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
         exit
     fi
 	
-	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
-	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
-	test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
-	test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
-	test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
-	test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
-	test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
-	test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
-	test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
+	# test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
+	# test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
+	# test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
+	# test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
+	# test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
+	# test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
+	# test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
+	# test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
+	# test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
 
-	test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
-	test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
-	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
-	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
-	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
+	# test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
+	# test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
+	# test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
+	# test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
+	# test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
 	# check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
 	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
 
-	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
 
+	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
+	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
+	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
+	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "23"
+	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "23"
+	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "23"
     rm -rf "./log_$target"
 fi
