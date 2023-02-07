@@ -228,9 +228,9 @@ check_cpu_usage() {
 	local truncated_result=0
 	local pgid=0
 
-    timeout "$program_path/$program_name" "${params[@]}" &>.debug.txt & pid=$!
+    timeout 15 "$program_path/$program_name" "${params[@]}" &>.debug.txt & pid=$!
     
-	pgid=$(ps -o pgid= $pid | grep -o '[0-9]*')
+	pgid=$(ps -o pgid=$pid | grep -o '[1-9]*')
 	sleep 1
     while [ $current_time -lt $end_time ]; do
         current_time=$(date +%s)
@@ -299,6 +299,20 @@ check_number_of_forks ()
 
 }
 
+check_secure_thread_creation () {
+    local program_name="$1"
+    local program_path="$2"
+	local test_number="$3"
+
+	result=$( (ulimit -v 180000; valgrind --leak-check=full --errors-for-leak-kinds=all  "$program_path/$program_name" 85 60 60 60) 2>&1 )
+
+	if echo "$result" | grep -q "ERROR SUMMARY: 0 errors"; then
+		echo -e "${green}[+] Test #${test_number} Threads are protected during initialization agaisn't insufficient memory, no errors found${reset} \n"
+	else
+		echo -e "${red}[+] Test #${test_number} Threads are not protected during initialization agaisn't insufficient memory. ${reset} \n"
+	fi
+}
+
 
 if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 
@@ -312,38 +326,40 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
         exit
     fi
 
-	# test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
-	# test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
-	# test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
-	# test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
-	# test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
-	# test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
-	# test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
-	# test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
-	# test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
+	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
+	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
+	test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
+	test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
+	test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
+	test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
+	test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
+	test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
+	test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
 
-	# test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
-	# test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
-	# test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
-	# test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
-	# test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
+	test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
+	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
+	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
+	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
-	# check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
-	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
+	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
 
-	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
 	
-	# check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
-	# check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
-	# check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
-	# check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
-	# check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
-	# check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
-	# check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "24"
-	# check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "25"
-	# check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "26"
-	# check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "27"
-	# check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "28"
+	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
+	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
+	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
+	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
+	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "24"
+	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "25"
+	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "26"
+	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "27"
+	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "28"
+	
+	check_secure_thread_creation "$target" "$1" "29"
 	
     rm -rf "./log_$target"
 fi
@@ -381,7 +397,7 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
 
 	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
 	
-	check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
+	# check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
 
     rm -rf "./log_$target"
 fi
