@@ -3,6 +3,7 @@ trap 'exit 130' INT # allows exit with C-c
 red=`tput setaf 1`
 green=`tput setaf 2`
 yellow=`tput setaf 3`
+blue=`tput setaf 4`
 reset=`tput sgr0`
 
 if [ "$#" -ne 2 ]; then
@@ -268,12 +269,15 @@ check_program_arguments() {
 
     local output_line_count=$(wc -l < output.txt)
     if [ $output_line_count -gt 1 ]; then
-		echo -e "${yellow}[~] Test #${test_number} Program output multiple lines with ${params[@]}, you should decide if this case is handled well. Here are the last lines: $(tail -n 2 output.txt) ${reset}\n"
+		echo -e "${yellow}[~] Test #${test_number} Program output multiple lines with ${params[@]}, you should decide if this case is handled well. Here are the last 2 lines:\n $(tail -n 2 output.txt) ${reset}\n"
 		rm output.txt
         return 1
     elif [ $output_line_count -eq 1 ]; then
-        echo -e "${yellow}[~] Test #${test_number} Program output with ${params[@]}: $(head -n 1 output.txt) ${reset}"
-        echo "${yellow}Check if this output is handled or not. ${reset}\n"
+		if grep -qEi 'invalid|wrong|error' output.txt; then
+			echo -e "${green}[+] Test #${test_number} Program output an error message with ${params[@]}:\n ${head -n 1 output.txt}\n"
+		else
+			echo -e "${yellow}[~] Test #${test_number} Program output with ${params[@]}:\n $(head -n 1 output.txt) ${reset}"
+		fi
     else
         echo -e "${green}[+] Test #${test_number} Program ran successfully without errors or output with ${params[@]}\n"
     fi
@@ -316,15 +320,17 @@ check_secure_thread_creation () {
 
 if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 
-    echo -e "[============[Testing philo]==============]\n"
+    echo -e "\n\t\t${green}[============[Testing philo]==============]${reset}"
 
     target="philo"
     make -C "$1/" > /dev/null
 
     if [ "$?" -ne 0 ];then
-        echo "\n${red}[+] There's a problem while compiling $target, please recheck your inputs${reset}"
+        echo "\n\t${red}[+] There's a problem while compiling $target, please recheck your inputs${reset}"
         exit
     fi
+
+	echo -e "\n\t\t${green}[============[ Death Checks ]==============]${reset}"
 
 	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
 	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
@@ -336,29 +342,37 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
 	test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
 
+	echo -e "\n\t\t${green}[============[ Meal Checks ]==============]${reset}"
+
 	test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
 	test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
 	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
 	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
 	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
+	echo -e "\n\t\t${green}[============[ CPU Checks ]==============]${reset}"
+
 	check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
 	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
 
+	echo -e "\n\t\t${green}[============[ Running Philo for 40 Seconds ]==============]${reset}"
+
 	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
 	
+	echo -e "\n\t\t${green}[============[ Testing Invalid Arguments ]==============]${reset}"
+
 	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
 	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
 	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
 	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
 	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "5" "23"
 	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "24"
 	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "25"
 	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "26"
 	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "27"
 	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "28"
 	
+	echo -e "\n\t\t${green}[============[ Error on Threads Creation ]==============]\n${reset}"
 	check_secure_thread_creation "$target" "$1" "29"
 	
     rm -rf "./log_$target"
@@ -376,28 +390,25 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
         exit
     fi
 	
-	# test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
-	# test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
-	# test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
-	# test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
-	# test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
-	# test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
-	# test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
-	# test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
-	# test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
+	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
+	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
+	test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
+	test_philosopher_death "$target" "$1" "5" "599" "200" "200" "4"
+	test_philosopher_death "$target" "$1" "5" "300" "60" "600" "5"
+	test_philosopher_death "$target" "$1" "5" "60" "60" "60" "6"
+	test_philosopher_death "$target" "$1" "200" "60" "60" "60" "7"
+	test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
+	test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
 
-	# test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
-	# test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
-	# test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
-	# test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
-	# test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
+	test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
+	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
+	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
+	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
-	# check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
-	# check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
-
-	# check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
 	
-	# check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
+	check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
 
     rm -rf "./log_$target"
 fi
