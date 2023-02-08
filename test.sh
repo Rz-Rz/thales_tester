@@ -252,6 +252,7 @@ check_cpu_usage() {
 	truncated_result=$(printf "%.2f%%\n" $average_cpu_usage) 
 	echo -e "${green}[+] Test #${test_number} Succeeded: Average CPU usage is $truncated_result for $3 philos${reset} \n"
     kill $pid
+	rm .debug.txt
 }
 
 check_program_arguments() {
