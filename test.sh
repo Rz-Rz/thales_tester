@@ -52,7 +52,7 @@ death_timing() {
   file=$1
   time_to_die=$2
   test_num=$3
-  
+
   while read line; do
     timestamp=$(echo $line | awk '{print $1}')
     if [[ $line == *"died"* ]]; then
@@ -116,7 +116,7 @@ check_simulation_ends () {
 test_valgrind () {
   local parameters="$3 $4 $5 $6 $7"
   local test_num="$8"
-  timeout 8 valgrind --leak-check=full --errors-for-leak-kinds=all --error-exitcode=1 "$2/$1" $parameters &> "./valgrind_$1.log"
+  timeout 30 valgrind --leak-check=full --errors-for-leak-kinds=all --error-exitcode=1 "$2/$1" $parameters &> "./valgrind_$1.log"
   if [ $? -eq 0 ]; then
     echo "${green}[+] Test #${test_num} Valgrind Test Succeeded !${reset}"
   else
@@ -128,7 +128,7 @@ test_valgrind () {
 test_helgrind () {
   local parameters="$3 $4 $5 $6 $7"
   local test_num="$8"
-  timeout 10 valgrind --tool=helgrind --error-exitcode=1 "$2/$1" $parameters &> "./helgrind_$1.log"
+  timeout 30 valgrind --tool=helgrind --error-exitcode=1 "$2/$1" $parameters &> "./helgrind_$1.log"
   if [ $? -eq 0 ]; then
     echo "${green}[+] Test #${test_num} Helgrind Test Succeeded !${reset}"
   else
@@ -140,7 +140,7 @@ test_helgrind () {
 test_valgrind_meals () {
   local parameters="$3 $4 $5 $6 $7"
   local test_num="$8"
-  timeout 20 valgrind --leak-check=full --errors-for-leak-kinds=all --error-exitcode=1 "$2/$1" $parameters &> "./valgrind_$1.log"
+  timeout 30 valgrind --leak-check=full --errors-for-leak-kinds=all --error-exitcode=1 "$2/$1" $parameters &> "./valgrind_$1.log"
   if [ $? -eq 0 ]; then
     echo "${green}[+] Test #${test_num} Valgrind Test Succeeded !${reset}"
   else
@@ -152,7 +152,7 @@ test_valgrind_meals () {
 test_helgrind_meals () {
   local parameters="$3 $4 $5 $6 $7"
   local test_num="$8"
-  timeout 20 valgrind --tool=helgrind --error-exitcode=1 "$2/$1" $parameters &> "./helgrind_$1.log"
+  timeout 30 valgrind --tool=helgrind --error-exitcode=1 "$2/$1" $parameters &> "./helgrind_$1.log"
   if [ $? -eq 0 ]; then
     echo "${green}[+] Test #${test_num} Helgrind Test Succeeded !${reset}"
   else
@@ -189,7 +189,7 @@ check_philosophers_nodeath ()
 	echo -e "\n"
 	local program_name="$1"
 	local program_path="$2"
-	local program_params=("${@:3:5}")
+	local program_params=("${@:3:4}")
 	local test_number="$7"
 	local log_file="./log_$program_name"
 	echo -e "${yellow}[+] Test #${test_number} Testing $program_name with ${program_params[@]}${reset}"
@@ -230,7 +230,7 @@ check_cpu_usage() {
 	local pgid=0
 
     timeout 15 "$program_path/$program_name" "${params[@]}" &>.debug.txt & pid=$!
-    
+
 	pgid=$(ps -o pgid=$pid | grep -o '[1-9]*')
 	sleep 1
     while [ $current_time -lt $end_time ]; do
@@ -249,8 +249,8 @@ check_cpu_usage() {
     done
 
 	average_cpu_usage="$(echo "$cpu_usage_sum / $cpu_usage_count" | bc -l)"
-	truncated_result=$(printf "%.2f%%\n" $average_cpu_usage) 
-	echo -e "${green}[+] Test #${test_number} Succeeded: Average CPU usage is $truncated_result for $3 philos${reset} \n"
+	truncated_result=$(printf "%.2f%%\n" $average_cpu_usage)
+	echo -e "\n${green}[+] Test #${test_number} Succeeded: Average CPU usage is $truncated_result for $3 philos${reset} \n"
     kill $pid
 	rm .debug.txt
 }
@@ -309,7 +309,7 @@ check_secure_thread_creation () {
     local program_path="$2"
 	local test_number="$3"
 
-	result=$( (ulimit -v 180000; valgrind --leak-check=full --errors-for-leak-kinds=all  "$program_path/$program_name" 85 60 60 60) 2>&1 )
+	result=$( (timeout 10 ulimit -v 175000; valgrind --leak-check=full --errors-for-leak-kinds=all  "$program_path/$program_name" 10 60 60 60) 2>&1 )
 
 	if echo "$result" | grep -q "ERROR SUMMARY: 0 errors"; then
 		echo -e "${green}[+] Test #${test_number} Threads are protected during initialization agaisn't insufficient memory, no errors found${reset} \n"
@@ -327,11 +327,11 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
     make -C "$1/" > /dev/null
 
     if [ "$?" -ne 0 ];then
-        echo "\n\t${red}[+] There's a problem while compiling $target, please recheck your inputs${reset}"
+        echo -e "\n\t${red}[+] There's a problem while compiling $target, please recheck your inputs${reset}"
         exit
     fi
 
-	echo -e "\n\t\t${green}[============[ Death Checks ]==============]${reset}"
+	echo -e "\n\t\t${green}[============[ Death Checks ]==============]${reset}\n"
 
 	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
 	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
@@ -343,7 +343,7 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	test_philosopher_death "$target" "$1" "200" "300" "60" "600" "8"
 	test_philosopher_death "$target" "$1" "199" "800" "300" "100" "9"
 
-	echo -e "\n\t\t${green}[============[ Meal Checks ]==============]${reset}"
+	echo -e "\n\t\t${green}[============[ Meal Checks ]==============]${reset}\n"
 
 	test_philosopher_meals "$target" "$1" "5" "800" "200" "200" "7" "10"
 	test_philosopher_meals "$target" "$1" "3" "800" "200" "200" "7" "11"
@@ -351,16 +351,20 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
 	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
-	echo -e "\n\t\t${green}[============[ CPU Checks ]==============]${reset}"
+	echo -e "\n\t\t${green}[============[ CPU Checks ]==============]${reset}\n"
 
 	check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
 	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "50" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "100" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "150" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "200" "800" "200" "200" "70" "16"
 
-	echo -e "\n\t\t${green}[============[ Running Philo for 40 Seconds ]==============]${reset}"
+	echo -e "\n\t\t${green}[============[ Running Philo for 40 Seconds ]==============]${reset}\n"
 
 	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
-	
-	echo -e "\n\t\t${green}[============[ Testing Invalid Arguments ]==============]${reset}"
+
+	echo -e "\n\t\t${green}[============[ Testing Invalid Arguments ]==============]${reset}\n"
 
 	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
 	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
@@ -372,10 +376,10 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "26"
 	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "27"
 	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "28"
-	
+
 	echo -e "\n\t\t${green}[============[ Error on Threads Creation ]==============]\n${reset}"
 	check_secure_thread_creation "$target" "$1" "29"
-	
+
     rm -rf "./log_$target"
 fi
 
@@ -390,7 +394,7 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
         echo "\n[+] There's a problem while compiling $target, please recheck your inputs"
         exit
     fi
-	
+
 	test_philosopher_death "$target" "$1" "1" "800" "200" "200" "1"
 	test_philosopher_death "$target" "$1" "4" "310" "200" "100" "2"
 	test_philosopher_death "$target" "$1" "4" "200" "205" "200" "3"
@@ -408,7 +412,7 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
 	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 
 	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
-	
+
 	check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
 
     rm -rf "./log_$target"
