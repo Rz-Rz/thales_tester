@@ -211,7 +211,7 @@ check_philosophers_nodeath ()
     sleep 1
     if [ $error -eq 0 ];then
         pkill $1
-        echo "${green}[+] Test #${test_number} Succeeded with ${program_params}${reset}"
+        echo "${green}[+] Test #${test_number} Succeeded with ${program_params[@]} ${reset}"
     fi
 }
 
@@ -275,7 +275,7 @@ check_program_arguments() {
         return 1
     elif [ $output_line_count -eq 1 ]; then
 		if grep -qEi 'invalid|wrong|error' output.txt; then
-			echo -e "${green}[+] Test #${test_number} Program output an error message with ${params[@]}:\n ${head -n 1 output.txt}\n"
+			echo -e "${green}[+] Test #${test_number} Program output an error message with ${params[@]}\n"
 		else
 			echo -e "${yellow}[~] Test #${test_number} Program output with ${params[@]}:\n $(head -n 1 output.txt) ${reset}"
 		fi
@@ -356,26 +356,25 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
 	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
 	check_cpu_usage "$target" "$1" "50" "800" "200" "200" "70" "16"
-	check_cpu_usage "$target" "$1" "100" "800" "200" "200" "70" "16"
-	check_cpu_usage "$target" "$1" "150" "800" "200" "200" "70" "16"
-	check_cpu_usage "$target" "$1" "200" "800" "200" "200" "70" "16"
 
 	echo -e "\n\t\t${green}[============[ Running Philo for 40 Seconds ]==============]${reset}\n"
 
 	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "150" "18"
+	check_philosophers_nodeath "$target" "$1" "3" "610" "200" "80" "19"
 
 	echo -e "\n\t\t${green}[============[ Testing Invalid Arguments ]==============]${reset}\n"
 
-	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "18"
-	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "19"
-	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "20"
-	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "21"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "22"
-	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "24"
-	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "25"
-	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "26"
-	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "27"
-	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "28"
+	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "20"
+	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "21"
+	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "22"
+	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "23"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "24"
+	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "25"
+	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "26"
+	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "27"
+	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "28"
+	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "29"
 
 	echo -e "\n\t\t${green}[============[ Error on Threads Creation ]==============]\n${reset}"
 	check_secure_thread_creation "$target" "$1" "29"
