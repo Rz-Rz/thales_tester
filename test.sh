@@ -74,9 +74,18 @@ test_philosopher_meals () {
 	local program_params=("${@:3:5}")
 	local test_number="$8"
 	local log_file="./log_$program_name"
+	local i=0
 	echo -e "${yellow}[+] Testing $program_name with ${program_params[@]}${reset}"
-	(timeout 10 "$program_path/$program_name" "${program_params[@]}" > "$log_file")
+	(timeout 20 "$program_path/$program_name" "${program_params[@]}" > "$log_file")
 
+	while [ $i -lt 20 ];do
+		pgrep $1 > /dev/null
+		if [ "$?" -ne 0 ];then
+			break
+		fi
+		sleep 1
+		i=$(( $i + 1 ))
+	done
 	check_philosophers_eat "$log_file" "$3" "$7" "$test_number" "${program_params[@]}"
 	rm -rf "$log_file"
 	test_valgrind_meals $1 $2 $3 $4 $5 $6 $7 $8 $test_number
@@ -172,7 +181,7 @@ check_philosophers_eat () {
 
 	for (( i=1; i<=num_philosophers; i++ ))
 	do
-		local philosopher_eat_count=$(grep -c "$i is eating" "$log_file")
+		local philosopher_eat_count=$(grep -w -c "$i is eating" "$log_file")
 		echo -e "${yellow}[+] Philosopher $i ate $philosopher_eat_count times${reset}"
 		if [ "$philosopher_eat_count" -lt "$num_meals" ] || [ "$philosopher_eat_count" -gt $((num_meals + 2)) ]; then
 			echo "${red}[-] Test #${test_num} Failed: Philosopher $i has not eaten enough times or has eaten too many times${reset}"
@@ -295,7 +304,7 @@ check_number_of_forks ()
 
 	sleep 1
 	forks=$(pgrep $1 | wc -l)
-    if [ "$forks" -eq 11 ];then
+    if [ "$forks" -eq ${params[3]} ];then
         echo -e "${green}[+] Test #${test_number} Succeeded: Program created 10 forks with ${params[@]} ${reset}\n"
     else
         echo -e "${red}[+] Test #{test_number} Failed: Program created $forks forks with ${params[@]} ${reset}\n"
