@@ -350,34 +350,38 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
 	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
 	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "200" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "199" "610" "200" "200" "10" "15"
 
 	echo -e "\n\t\t${green}[============[ CPU Checks ]==============]${reset}\n"
 
-	check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "15"
-	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "16"
-	check_cpu_usage "$target" "$1" "50" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "2" "800" "200" "200" "70" "16"
+	check_cpu_usage "$target" "$1" "10" "800" "200" "200" "70" "17"
+	check_cpu_usage "$target" "$1" "50" "800" "200" "200" "70" "18"
 
 	echo -e "\n\t\t${green}[============[ Running Philo for 40 Seconds ]==============]${reset}\n"
 
-	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
-	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "150" "18"
-	check_philosophers_nodeath "$target" "$1" "3" "610" "200" "80" "19"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "19"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "150" "20"
+	check_philosophers_nodeath "$target" "$1" "3" "610" "200" "80" "21"
+	check_philosophers_nodeath "$target" "$1" "199" "610" "200" "80" "22"
+	check_philosophers_nodeath "$target" "$1" "200" "410" "200" "80" "23"
 
 	echo -e "\n\t\t${green}[============[ Testing Invalid Arguments ]==============]${reset}\n"
 
-	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "20"
-	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "21"
-	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "22"
-	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "23"
-	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "24"
-	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "25"
-	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "26"
-	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "27"
-	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "28"
-	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "29"
+	check_program_arguments "$target" "$1" "-5" "600" "200" "200" "5" "24"
+	check_program_arguments "$target" "$1" "5" "-5" "200" "200" "5" "25"
+	check_program_arguments "$target" "$1" "5" "600" "-5" "200" "5" "26"
+	check_program_arguments "$target" "$1" "5" "600" "200" "-5" "5" "27"
+	check_program_arguments "$target" "$1" "5" "600" "200" "200" "-5" "28"
+	check_program_arguments "$target" "$1" "5" "2147483649" "200" "200" "5" "29"
+	check_program_arguments "$target" "$1" "5" "200" "2147483649" "200" "5" "30"
+	check_program_arguments "$target" "$1" "2147483649" "200" "200" "200" "5" "31"
+	check_program_arguments "$target" "$1" "5" "200" "200" "200" "2147483649" "32"
+	check_program_arguments "$target" "$1" "5" "200" "200" "2147483649" "5" "33"
 
 	echo -e "\n\t\t${green}[============[ Error on Threads Creation ]==============]\n${reset}"
-	check_secure_thread_creation "$target" "$1" "29"
+	check_secure_thread_creation "$target" "$1" "34"
 
     rm -rf "./log_$target"
 fi
@@ -409,10 +413,18 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
 	test_philosopher_meals "$target" "$1" "2" "800" "200" "200" "7" "12"
 	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
 	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "200" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "199" "610" "200" "200" "10" "15"
 
-	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "17"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "200" "16"
+	check_philosophers_nodeath "$target" "$1" "5" "800" "200" "150" "17"
+	check_philosophers_nodeath "$target" "$1" "3" "610" "200" "80" "18"
+	check_philosophers_nodeath "$target" "$1" "199" "610" "200" "80" "18"
+	check_philosophers_nodeath "$target" "$1" "200" "410" "200" "80" "19"
 
-	check_number_of_forks "$target" "$1" "10" "800" "200" "200" "17"
+	check_number_of_forks "$target" "$1" "10" "800" "200" "200" "20"
+	check_number_of_forks "$target" "$1" "100" "800" "200" "200" "21"
+	check_number_of_forks "$target" "$1" "200" "800" "200" "200" "22"
 
     rm -rf "./log_$target"
 fi
