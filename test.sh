@@ -6,6 +6,30 @@ yellow=`tput setaf 3`
 blue=`tput setaf 4`
 reset=`tput sgr0`
 
+fatal_error()
+{
+	if [ -z "$1" ]
+	then
+		message="fatal error"
+	else
+		message="$1"
+	fi
+	if [ -z "$2" ]
+	then
+		exit_status=1
+	else
+		exit_status=$2
+	fi
+	printf "${RED}$message${NC}\n"
+	exit $exit_status
+}
+
+commands_needed=("awk" "echo" "date" "sed" "pgrep" "sleep" "awk" "valgrind" "git" "mkdir" "make" "nm" "grep" "wc" "cat" "timeout" "ps" "hostname" "head")
+for command_needed in "${commands_needed[@]}"
+do
+	command -v $command_needed > /dev/null 2>&1 || fatal_error "'$command_needed' command not installed... Aborting."
+done
+
 if [ "$#" -ne 2 ]; then
     echo " ${yellow}Usage: start.sh <Project Folder> <Test Type>"
     echo -e "\tType 0: test philo, and philo_bonus"
