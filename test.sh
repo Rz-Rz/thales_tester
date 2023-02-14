@@ -384,6 +384,7 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
 	test_philosopher_meals "$target" "$1" "4" "410" "200" "200" "10" "13"
 	test_philosopher_meals "$target" "$1" "2" "410" "200" "200" "10" "14"
 	test_philosopher_meals "$target" "$1" "200" "410" "200" "200" "10" "14"
+	test_philosopher_meals "$target" "$1" "7" "800" "200" "500" "7" "14.1"
 	test_philosopher_meals "$target" "$1" "199" "610" "200" "200" "10" "15"
 	test_philosopher_meals "$target" "$1" "199" "610" "200" "80" "10" "16"
 	test_philosopher_meals "$target" "$1" "200" "410" "200" "80" "10" "17"
